@@ -1,13 +1,11 @@
 plugins {
     kotlin("jvm") version "2.1.0"
     kotlin("plugin.spring") version "1.9.25"
-    id("org.springframework.boot") version "3.4.0"
     id("io.spring.dependency-management") version "1.1.6"
     `maven-publish`
-    id("com.google.cloud.tools.jib") version "3.4.1"
 }
 
-group = "com.continuum.feature.base"
+group = "com.continuum.base"
 val baseVersion = "0.0.1"
 val isRelease = System.getenv("IS_RELEASE_BUILD")?.toBoolean() ?: false
 version = if (isRelease) baseVersion else "$baseVersion-SNAPSHOT"
@@ -32,7 +30,7 @@ repositories {
 }
 
 dependencies {
-    // Spring Boot dependencies
+    // Springboot dependencies
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -40,16 +38,49 @@ dependencies {
     // Kotlin dependencies
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
-    // Worker framework (from GitHub Packages)
-    implementation("com.continuum.core:continuum-worker-springboot-starter:0.0.1")
+    // Spring Cloud stream dependencies
+    implementation("io.confluent:kafka-avro-serializer:7.6.1")
+    implementation("io.confluent:kafka-schema-registry-client:7.6.1")
+    implementation("org.springframework.cloud:spring-cloud-starter-stream-kafka")
 
-    // Feature node modules (local project)
-    implementation(project(":features:continuum-feature-analytics"))
+    // Project dependencies
+    implementation("com.continuum.core:continuum-commons:0.0.1")
+    implementation("com.continuum.core:continuum-avro-schemas:0.0.1")
+
+    // Jackson dependencies
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.2")
+
+    // Temporal dependency
+    implementation("io.temporal:temporal-sdk")
+    implementation("io.temporal:temporal-kotlin")
+    implementation("io.temporal:temporal-spring-boot-starter")
+
+    // MQTT dependencies
+    implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
+
+    // AWS dependencies
+    implementation("software.amazon.awssdk:s3")
+    implementation("software.amazon.awssdk:sts")
+    implementation("software.amazon.awssdk:sso")
+    implementation("software.amazon.awssdk:ssooidc")
+    implementation("software.amazon.awssdk.crt:aws-crt:0.33.10")
+    implementation("software.amazon.awssdk:s3-transfer-manager")
+
+    // Kotlin scripting dependencies
+    implementation("org.jetbrains.kotlin:kotlin-script-runtime:2.1.0")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-jsr223:2.1.0")
+
+    // FreeMarker template engine
+    implementation("org.freemarker:freemarker:2.3.32")
 
     // Test dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("io.temporal:temporal-testing")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.3.1")
+    testImplementation("org.springframework.cloud:spring-cloud-stream-test-support")
+    testImplementation("org.springframework.cloud:spring-cloud-stream-test-binder")
 }
 
 dependencyManagement {
@@ -90,22 +121,9 @@ publishing {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/$repoName")
             credentials {
-                username = System.getenv("GITHUB_USER") ?: ""
-                password = System.getenv("GITHUB_TOKEN") ?: ""
+                username = System.getenv("MAVEN_REPO_USERNAME")
+                password = System.getenv("MAVEN_REPO_PASSWORD")
             }
         }
-    }
-}
-
-jib {
-    to {
-        image = "ghcr.io/${(System.getenv("GITHUB_REPOSITORY") ?: property("repoName").toString()).lowercase()}/${project.name.lowercase()}:${project.version}"
-        auth {
-            username = System.getenv("DOCKER_REPO_USERNAME") ?: ""
-            password = System.getenv("DOCKER_REPO_PASSWORD") ?: ""
-        }
-    }
-    from {
-        image = "eclipse-temurin:21-jre"
     }
 }
