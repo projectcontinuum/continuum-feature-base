@@ -94,6 +94,7 @@ class RestNodeModel(
               "title": "Authentication Type",
               "description": "Type of authentication to use",
               "enum": ["None", "Basic", "Token"],
+              "enumNames": ["None", "Basic Authentication", "Bearer Token"],
               "default": "None"
             },
             "credential": {
@@ -111,41 +112,47 @@ class RestNodeModel(
   val propertiesUiSchema: Map<String, Any> = objectMapper.readValue(
     """
         {
-          "type": "VerticalLayout",
+          "type": "Categorization",
           "elements": [
             {
-              "type": "Control",
-              "scope": "#/properties/method"
-            },
-            {
-              "type": "Control",
-              "scope": "#/properties/url",
-              "options": {
-                "format": "code",
-                "language": "freemarker2",
-                "rows": 1
-              }
-            },
-            {
-              "type": "Control",
-              "scope": "#/properties/payload",
-              "options": {
-                "format": "code",
-                "language": "freemarker2",
-                "rows": 10
-              },
-              "rule": {
-                "effect": "HIDE",
-                "condition": {
-                  "scope": "#/properties/method",
-                  "schema": {
-                    "enum": ["GET", "DELETE"]
+              "type": "Category",
+              "label": "Request",
+              "elements": [
+                {
+                  "type": "Control",
+                  "scope": "#/properties/method"
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/url",
+                  "options": {
+                    "format": "code",
+                    "language": "freemarker2",
+                    "rows": 1
+                  }
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/payload",
+                  "options": {
+                    "format": "code",
+                    "language": "freemarker2",
+                    "rows": 10
+                  },
+                  "rule": {
+                    "effect": "HIDE",
+                    "condition": {
+                      "scope": "#/properties/method",
+                      "schema": {
+                        "enum": ["GET", "DELETE"]
+                      }
+                    }
                   }
                 }
-              }
+              ]
             },
             {
-              "type": "Group",
+              "type": "Category",
               "label": "Authentication",
               "elements": [
                 {
@@ -157,14 +164,31 @@ class RestNodeModel(
                   "scope": "#/properties/credential",
                   "options": {
                     "format": "credential",
-                    "credentialType": "${'$'}{authType}"
+                    "credentialType": "BASIC"
                   },
                   "rule": {
-                    "effect": "HIDE",
+                    "effect": "SHOW",
                     "condition": {
                       "scope": "#/properties/authType",
                       "schema": {
-                        "const": "None"
+                        "const": "Basic"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/credential",
+                  "options": {
+                    "format": "credential",
+                    "credentialType": "TOKEN"
+                  },
+                  "rule": {
+                    "effect": "SHOW",
+                    "condition": {
+                      "scope": "#/properties/authType",
+                      "schema": {
+                        "const": "Token"
                       }
                     }
                   }
