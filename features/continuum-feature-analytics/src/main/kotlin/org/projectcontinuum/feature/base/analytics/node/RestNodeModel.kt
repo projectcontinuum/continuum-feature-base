@@ -164,7 +164,7 @@ class RestNodeModel(
                   "scope": "#/properties/credential",
                   "options": {
                     "format": "credential",
-                    "credentialType": "BASIC"
+                    "credentialType": "GENERIC"
                   },
                   "rule": {
                     "effect": "SHOW",
@@ -181,7 +181,7 @@ class RestNodeModel(
                   "scope": "#/properties/credential",
                   "options": {
                     "format": "credential",
-                    "credentialType": "TOKEN"
+                    "credentialType": "GENERIC"
                   },
                   "rule": {
                     "effect": "SHOW",
