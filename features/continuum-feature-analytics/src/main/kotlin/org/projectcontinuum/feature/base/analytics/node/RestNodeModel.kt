@@ -88,6 +88,18 @@ class RestNodeModel(
               "type": "string",
               "title": "Payload Template",
               "description": "FreeMarker template for request body (e.g., {\"name\": \"${'$'}{row.name}\"})"
+            },
+            "authType": {
+              "type": "string",
+              "title": "Authentication Type",
+              "description": "Type of authentication to use",
+              "enum": ["None", "Basic", "Token"],
+              "default": "None"
+            },
+            "credential": {
+              "type": "string",
+              "title": "Credential",
+              "description": "ID of the stored credential to use for authentication"
             }
           },
           "required": ["method", "url"]
@@ -131,6 +143,33 @@ class RestNodeModel(
                   }
                 }
               }
+            },
+            {
+              "type": "Group",
+              "label": "Authentication",
+              "elements": [
+                {
+                  "type": "Control",
+                  "scope": "#/properties/authType"
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/credential",
+                  "options": {
+                    "format": "credential",
+                    "credentialType": "${'$'}{authType}"
+                  },
+                  "rule": {
+                    "effect": "HIDE",
+                    "condition": {
+                      "scope": "#/properties/authType",
+                      "schema": {
+                        "const": "None"
+                      }
+                    }
+                  }
+                }
+              ]
             }
           ]
         }
@@ -154,7 +193,9 @@ class RestNodeModel(
     properties = mapOf(
       "method" to "GET",
       "url" to "https://api.example.com/data?id=${'$'}{row.id}",
-      "payload" to ""
+      "payload" to "",
+      "authType" to "None",
+      "credential" to ""
     ),
     propertiesSchema = propertiesSchema,
     propertiesUISchema = propertiesUiSchema
@@ -238,6 +279,15 @@ class RestNodeModel(
             // Build request headers
             val headers = HttpHeaders().apply {
               set("Content-Type", "application/json")
+            }
+
+            // Add authentication headers if applicable
+            val authType = properties["authType"] as String?
+            val credential = properties["credential"] as String?
+            if (authType != null && authType != "None" && !credential.isNullOrEmpty()) {
+              // TODO: Resolve credential from credential store using credential ID
+              // For now, just log that authentication is configured
+              LOGGER.debug("Authentication configured: type=$authType, credentialId=$credential")
             }
 
             // Build request entity with payload (if applicable)
