@@ -6,6 +6,7 @@ import freemarker.template.Configuration
 import freemarker.template.Template
 import freemarker.template.TemplateExceptionHandler
 import org.projectcontinuum.core.commons.annotation.ContinuumNode
+import org.projectcontinuum.core.commons.context.ExecutionContext
 import org.projectcontinuum.core.commons.exception.NodeRuntimeException
 import org.projectcontinuum.core.commons.model.ContinuumWorkflowModel
 import org.projectcontinuum.core.commons.node.ProcessNodeModel
@@ -261,7 +262,8 @@ class RestNodeModel(
     properties: Map<String, Any>?,
     inputs: Map<String, NodeInputReader>,
     nodeOutputWriter: NodeOutputWriter,
-    nodeProgressCallback: NodeProgressCallback
+    nodeProgressCallback: NodeProgressCallback,
+    executionContext: ExecutionContext
   ) {
     LOGGER.info("Node object id for debugging: ${System.identityHashCode(this)}")
     val method = properties?.get("method") as String? ?: throw NodeRuntimeException(
@@ -277,7 +279,7 @@ class RestNodeModel(
     val payloadTemplate = properties["payload"] as String? ?: ""
 
     var lastProgressReportTime = System.currentTimeMillis()
-
+    val credential = executionContext.credentials["credential"]  // Example of how to access resolved credentials if needed
     LOGGER.info("REST Node: method=$method, urlTemplate=$urlTemplate")
     val totalRowCount = inputs["data"]?.getRowCount()
     nodeOutputWriter.createOutputPortWriter("data").use { writer ->
